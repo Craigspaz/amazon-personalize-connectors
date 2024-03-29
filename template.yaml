@@ -84,7 +84,7 @@ Rules:
 
 Globals:
   Function:
-    Runtime: python3.9
+    Runtime: python3.12
     Tracing: Active
     Environment:
       Variables:
@@ -129,8 +129,11 @@ Resources:
       ContentUri: src/enqueue_layer
       CompatibleRuntimes:
         - python3.9
+        - python3.10
+        - python3.11
+        - python3.12
     Metadata:
-      BuildMethod: python3.9
+      BuildMethod: python3.12
 
 ##########################################################################
 #  Glue ETL Jobs                                                         #

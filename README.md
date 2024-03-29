@@ -8,7 +8,7 @@ This project provides a connector framework that provides a general purpose ETL 
 
 This solution builds upon the automation of batch inference jobs provided in the [Maintaining Personalized Experiences with Machine Learning](https://aws.amazon.com/solutions/implementations/maintaining-personalized-experiences-with-ml/) solution. That is, you must deploy that solution before deploying this solution and the ouput of batch inference jobs from that solution is used as input for this solution.
 
-The [Maintaining Personalized Experiences with Machine Learning](https://aws.amazon.com/solutions/implementations/maintaining-personalized-experiences-with-ml/) solution maintains its own S3 bucket where batch inference job input and output files are stored. The S3 bucket layout looks something like this (please consult the solution documentation for more details).
+The [Maintaining Personalized Experiences with Machine Learning](https://aws.amazon.com/solutions/implementations/maintaining-personalized-experiences-with-ml/) solution maintains its own S3 bucket where batch inference job input and output files are stored. The S3 bucket layout looks something like this (please consult the [solution documentation](https://aws.amazon.com/solutions/implementations/maintaining-personalized-experiences-with-ml/) for details).
 
 ```
 batch/
@@ -21,7 +21,7 @@ batch/
             └── job_config.json.out
 ```
 
-This solution is designed to take in the output files from batch inference jobs that are processed by the above solution. This solution has its own S3 bucket for job inputs and outputs. Here is the layout of the S3 bucket.
+The Amazon Personalize Connectors solution (i.e., this solution) is designed to consume the output files from batch inference jobs that are processed by the above solution. This solution has its own S3 bucket for its own job inputs and outputs. Here is the layout of the S3 bucket for this solution.
 
 ```
 etl_jobs/
@@ -87,7 +87,7 @@ etl_jobs/
                             └── time=<HHMMSS>/
 ```
 
-There are currently two batch inference job types supported by this solution: related items and user_personalization. Personalized ranking and user segmentation job types may be added in the future.
+There are currently two batch inference job types supported by this solution: [related items](https://docs.aws.amazon.com/personalize/latest/dg/related-items-recipes.html) and [user_personalization](https://docs.aws.amazon.com/personalize/latest/dg/user-personalization-recipes.html). Support for [personalized ranking](https://docs.aws.amazon.com/personalize/latest/dg/personalized-ranking-recipes.html) and [user segmentation](https://docs.aws.amazon.com/personalize/latest/dg/user-segmentation-recipes.html) job types may be added in the future.
 
 To create a connector pipeline job flow, follow these steps.
 
@@ -120,7 +120,7 @@ _The Braze Connector infrastructure components will only be deployed if both the
 - **Create a pipeline configuration file** and upload it to the appropriate location in the solution S3 bucket as described above, making to sure to create a "braze" connector. Here is an example that declares the item metadata fields to synchronize to each Braze user profile (optional, all fields used by default), an attribute prefix (optional), and other attributes to set for each user.
 ```javascript
 {
-    "batchInferencePath": "s3://[PERSONALIZE_MLOPS_BUCKET/batch/[DATASET_GROUP_NAME/[SOLUTION_NAME/[SOLUTION_NAME]-YYYY-MM-DD-HH-MM-SS/",
+    "batchInferencePath": "s3://[PERSONALIZE_MLOPS_BUCKET/batch/[DATASET_GROUP_NAME/[SOLUTION_NAME]/[SOLUTION_NAME]-YYYY-MM-DD-HH-MM-SS/",
     "performDeltaCheck": true,
     "saveBatchInferenceErrors": true,
     "connectors": {
@@ -145,7 +145,7 @@ _The Braze Connector infrastructure components will only be deployed if both the
 3. Join batch inference job file with user-item mapping dataset (joining on item ID)
 4. If item metadata is present in the job input folder, load item metadata and join it to the batch inference results. This is where each `itemId` is decorated with item metadata.
 5. For each connector configured in the pipeline configuration file:
-    1. If there is state data from the last time the ETL pipeline was run for the job, load the last sync state data and subtract it from the pending updates from the batch inference job. This essentially removes all redundant user updates in the ETL job dataset. This reduces the amount user updates that are synchronized to the connector destination.
+    1. If there is state data from the last time the ETL pipeline was run for the job, load the last sync state data and subtract it from the pending updates from the batch inference job. This essentially removes all redundant user updates in the ETL job dataset. This reduces the amount of user updates that are synchronized to the connector destination which makes the processing more efficient and can help optimize charges incurred from the connector destination (i.e., [Braze data points](https://www.braze.com/docs/user_guide/data_and_analytics/data_points/)).
     2. Write the final dataset to the `etl_jobs/<job_type>/<job_name>/output/` folder.
     3. Update the last sync state data with the update recommendations (TODO).
 
@@ -246,7 +246,7 @@ sam build --use-container --cached
 sam deploy --guided
 ```
 
-The `sam build --use-container --cached` command will build and package the source of the solution. The `sam deploy --guided` command will prompt you for deployment configuration information and ultimately deploy the solution to your AWS account. **Be sure to deploy the solution in the same AWS region where your Amazon Personalize workload and the [Maintaining Personalized Experiences with Machine Learning](https://aws.amazon.com/solutions/implementations/maintaining-personalized-experiences-with-ml/) solution is installed.
+The `sam build --use-container --cached` command will build and package the source of the solution. The `sam deploy --guided` command will prompt you for deployment configuration information and ultimately deploy the solution to your AWS account. **Be sure to deploy the solution in the same AWS region where your Amazon Personalize workload and the [Maintaining Personalized Experiences with Machine Learning](https://aws.amazon.com/solutions/implementations/maintaining-personalized-experiences-with-ml/) solution is installed.**
 
 ### Deployment template parameters
 
